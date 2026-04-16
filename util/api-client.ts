@@ -4,7 +4,8 @@ import { APILogger } from "./logger";
 export class APIClient {
   private apiLogger: APILogger;
   private request: APIRequestContext;
-  private baseURL: string = "https://api.eventhub.rahulshettyacademy.com/api";
+  private baseURL: string | undefined =
+    "https://api.eventhub.rahulshettyacademy.com/api";
   private apiPath: string = "";
   private queryParams: Record<string, string | number> = {};
   private apiHeaders: Record<string, string> = {};
@@ -46,6 +47,7 @@ export class APIClient {
     const response = await this.request.get(url, {
       headers: this.apiHeaders,
     });
+    this.cleanupfields();
     const reponseJson = await response.json();
     this.apiLogger.logResponse(response.status(), reponseJson);
     return {
@@ -62,6 +64,7 @@ export class APIClient {
       headers: this.apiHeaders,
       data: this.apiBody,
     });
+    this.cleanupfields();
     const reponseJson = await response.json();
     this.apiLogger.logResponse(response.status(), reponseJson);
     return {
@@ -78,6 +81,7 @@ export class APIClient {
       headers: this.apiHeaders,
       data: this.apiBody,
     });
+    this.cleanupfields();
     const reponseJson = await response.json();
     this.apiLogger.logResponse(response.status(), reponseJson);
     return {
@@ -91,6 +95,7 @@ export class APIClient {
     const url = this.getUrl();
     this.apiLogger.logRequest("DELETE", url, this.apiHeaders);
     const response = await this.request.delete(url);
+    this.cleanupfields();
     const reponseJson = await response.json();
     this.apiLogger.logResponse(response.status(), reponseJson);
     return {
@@ -104,7 +109,14 @@ export class APIClient {
     for (const [key, value] of Object.entries(this.queryParams)) {
       url.searchParams.append(key, value.toString());
     }
-    //console.log(url.toString());
     return url.toString();
+  }
+
+  private cleanupfields() {
+    this.baseURL = undefined;
+    this.apiPath = "";
+    this.queryParams = {};
+    this.apiHeaders = {};
+    this.apiBody = {};
   }
 }

@@ -1,21 +1,22 @@
 import { test, expect } from "../../fixtures/apiFixture";
+import { createToken } from "../../helpers/createToken";
+import { config } from "../../util/api-config";
 
 let authToken: string;
 
 test.describe("Login API flow", () => {
   test.beforeAll("Login test with valid credentials", async ({ api }) => {
-    const response = await api
-      .url("https://api.eventhub.rahulshettyacademy.com/api")
-      .path("/auth/login")
-      .body({
-        email: "testing@test.com",
-        password: "secret123",
-      })
-      .postRequest();
-    expect(response.status).toBe(200);
-    expect(response.ok).toBeTruthy();
-    authToken = response.body.token;
-    console.log(authToken);
+    // const response = await api
+    //   .url("https://api.eventhub.rahulshettyacademy.com/api")
+    //   .path("/auth/login")
+    //   .body({
+    //     email: config.userEmail,
+    //     password: config.userPassword,
+    //   })
+    //   .postRequest();
+    // expect(response.status).toBe(200);
+    // expect(response.ok).toBeTruthy();
+    authToken = await createToken(config.userEmail, config.userPassword);
   });
 
   test("Get the authenticated user details", async ({ api }) => {
@@ -53,8 +54,8 @@ test("Login test with valid username and invalid password", async ({ api }) => {
   const response = await api
     .path("/auth/login")
     .body({
-      email: "testing@test.com",
-      password: "wrongpassword",
+      email: config.userEmail,
+      password: config.userWrongPassword,
     })
     .postRequest();
   expect(response.status).toBe(400);
@@ -65,8 +66,8 @@ test("Login test with invalid username and valid password", async ({ api }) => {
   const response = await api
     .path("/auth/login")
     .body({
-      email: "test@gmail.com",
-      password: "secret123",
+      email: config.userWrongEmail,
+      password: config.userPassword,
     })
     .postRequest();
   expect(response.status).toBe(400);
