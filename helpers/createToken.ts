@@ -16,6 +16,7 @@ export async function createToken(email: string, password: string) {
         password: config.userPassword,
       })
       .postRequest();
+    //console.log("Token response:", response.body.token);
     return response.body.token;
   } catch (error) {
     throw new Error("Failed to create token", { cause: error });

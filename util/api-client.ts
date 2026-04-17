@@ -10,10 +10,17 @@ export class APIClient {
   private queryParams: Record<string, string | number> = {};
   private apiHeaders: Record<string, string> = {};
   private apiBody: Record<string, string | number> = {};
+  private defaultAuthToken: string;
+  private clearAuthFlag: boolean = false;
 
-  constructor(request: APIRequestContext, apiLogger: APILogger) {
+  constructor(
+    request: APIRequestContext,
+    apiLogger: APILogger,
+    authToken: string = "",
+  ) {
     this.request = request;
     this.apiLogger = apiLogger;
+    this.defaultAuthToken = authToken;
   }
 
   url(url: string) {
@@ -41,11 +48,16 @@ export class APIClient {
     return this;
   }
 
+  clearAuth() {
+    this.clearAuthFlag = true;
+    return this;
+  }
+
   async getRequest() {
     const url = this.getUrl();
-    this.apiLogger.logRequest("GET", url, this.apiHeaders, this.apiBody);
+    this.apiLogger.logRequest("GET", url, this.getHeaders(), this.apiBody);
     const response = await this.request.get(url, {
-      headers: this.apiHeaders,
+      headers: this.getHeaders(),
     });
     this.cleanupfields();
     const reponseJson = await response.json();
@@ -59,9 +71,9 @@ export class APIClient {
 
   async postRequest() {
     const url = this.getUrl();
-    this.apiLogger.logRequest("POST", url, this.apiHeaders, this.apiBody);
+    this.apiLogger.logRequest("POST", url, this.getHeaders(), this.apiBody);
     const response = await this.request.post(url, {
-      headers: this.apiHeaders,
+      headers: this.getHeaders(),
       data: this.apiBody,
     });
     this.cleanupfields();
@@ -76,9 +88,9 @@ export class APIClient {
 
   async putRequest() {
     const url = this.getUrl();
-    this.apiLogger.logRequest("PUT", url, this.apiHeaders, this.apiBody);
+    this.apiLogger.logRequest("PUT", url, this.getHeaders(), this.apiBody);
     const response = await this.request.put(url, {
-      headers: this.apiHeaders,
+      headers: this.getHeaders(),
       data: this.apiBody,
     });
     this.cleanupfields();
@@ -93,7 +105,7 @@ export class APIClient {
 
   async deleteRequest() {
     const url = this.getUrl();
-    this.apiLogger.logRequest("DELETE", url, this.apiHeaders);
+    this.apiLogger.logRequest("DELETE", url, this.getHeaders());
     const response = await this.request.delete(url);
     this.cleanupfields();
     const reponseJson = await response.json();
@@ -112,11 +124,20 @@ export class APIClient {
     return url.toString();
   }
 
+  private getHeaders() {
+    if (!this.clearAuthFlag && this.defaultAuthToken) {
+      this.apiHeaders["Authorization"] =
+        this.apiHeaders["Authorization"] || `Bearer ${this.defaultAuthToken}`;
+    }
+    return this.apiHeaders;
+  }
+
   private cleanupfields() {
     this.baseURL = undefined;
     this.apiPath = "";
     this.queryParams = {};
     this.apiHeaders = {};
     this.apiBody = {};
+    this.clearAuthFlag = false;
   }
 }

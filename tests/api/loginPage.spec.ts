@@ -1,53 +1,34 @@
 import { test, expect } from "../../fixtures/apiFixture";
-import { createToken } from "../../helpers/createToken";
 import { config } from "../../util/api-config";
 
-let authToken: string;
+test("Get the authenticated user details", async ({ api }) => {
+  const response = await api
+    .url("https://api.eventhub.rahulshettyacademy.com/api")
+    .path("/auth/me")
+    .getRequest();
+  expect(response.status).toBe(200);
+  expect(response.ok).toBeTruthy();
+});
 
-test.describe("Login API flow", () => {
-  test.beforeAll("Login test with valid credentials", async ({ api }) => {
-    // const response = await api
-    //   .url("https://api.eventhub.rahulshettyacademy.com/api")
-    //   .path("/auth/login")
-    //   .body({
-    //     email: config.userEmail,
-    //     password: config.userPassword,
-    //   })
-    //   .postRequest();
-    // expect(response.status).toBe(200);
-    // expect(response.ok).toBeTruthy();
-    authToken = await createToken(config.userEmail, config.userPassword);
-  });
+test("Display the message for unauthorized user details", async ({ api }) => {
+  const response = await api
+    .url("https://api.eventhub.rahulshettyacademy.com/api")
+    .path("/auth/me")
+    .clearAuth()
+    .getRequest();
+  expect(response.status).toBe(401);
+  expect(response.body.error).toContain("Unauthorized");
+});
 
-  test("Get the authenticated user details", async ({ api }) => {
-    const response = await api
-      .url("https://api.eventhub.rahulshettyacademy.com/api")
-      .path("/auth/me")
-      .headers({ Authorization: `Bearer ${authToken}` })
-      .getRequest();
-    expect(response.status).toBe(200);
-    expect(response.ok).toBeTruthy();
-  });
-
-  test("Display the message for unauthorized user details", async ({ api }) => {
-    const response = await api
-      .url("https://api.eventhub.rahulshettyacademy.com/api")
-      .path("/auth/me")
-      .headers({ Authorization: `${authToken}` })
-      .getRequest();
-    expect(response.status).toBe(401);
-    expect(response.body.error).toContain("Unauthorized");
-  });
-
-  test("Display the message for expired or invalid token", async ({ api }) => {
-    const response = await api
-      .url("https://api.eventhub.rahulshettyacademy.com/api")
-      .path("/auth/me")
-      .headers({ Authorization: `Bearer ${authToken + "test"}` })
-      .getRequest();
-    expect(response.status).toBe(401);
-    expect(response.body.error).toContain("Invalid or expired token");
-  });
+test("Display the message for expired or invalid token", async ({ api }) => {
+  const response = await api
+    .url("https://api.eventhub.rahulshettyacademy.com/api")
+    .path("/auth/me")
+    .clearAuth()
+    .headers({ Authorization: "Bearer invalidtoken" })
+    .getRequest();
+  expect(response.status).toBe(401);
+  expect(response.body.error).toContain("Invalid or expired token");
 });
 
 test("Login test with valid username and invalid password", async ({ api }) => {
