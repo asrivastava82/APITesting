@@ -1,11 +1,13 @@
 import { test, expect } from "../../fixtures/apiFixture";
 import { config } from "../../util/api-config";
+import { validateSchema } from "../../util/schema-validator";
 
 test("Get the authenticated user details", async ({ api }) => {
   const response = await api
     .url("https://api.eventhub.rahulshettyacademy.com/api")
     .path("/auth/me")
     .getRequest();
+  await validateSchema("login", "POST_login", response.body);
   expect(response.status).toBe(200);
   expect(response.ok).toBeTruthy();
 });
